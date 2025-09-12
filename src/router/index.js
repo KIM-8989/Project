@@ -27,6 +27,13 @@ const routes = [
     name: 'Customers',
     component: () => import(/* webpackChunkName: "about" */ '../views/Customers.vue')
   }
+   ,
+  {
+    path: '/add_customers',
+    name: 'add_customers',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Add_customer.vue')
+  }
+
 ]
 
 const router = createRouter({

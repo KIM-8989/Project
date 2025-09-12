@@ -3,7 +3,7 @@
     <h2 class="mb-3">รายชื่อลูกค้า</h2>
     
     <div class="mb-3">
-      <a class="btn btn-primary" href="/add_customer" role="button">Add+</a>
+      <a class="btn btn-primary" href="/add_customers" role="button">Add+</a>
     </div>
 
     <!-- ตารางแสดงข้อมูลลูกค้า -->
@@ -53,7 +53,7 @@ export default {
     // ฟังก์ชันดึงข้อมูลจาก API ด้วย GET
     const fetchCustomers = async () => {
       try {
-        const response = await fetch("http://localhost:8083/Project/vue_php_api/customers_api.php", {
+        const response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
           method: "GET",
           headers: {
             "Content-Type": "application/json"
