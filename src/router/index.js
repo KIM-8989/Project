@@ -32,7 +32,20 @@ const routes = [
     path: '/add_customers',
     name: 'add_customers',
     component: () => import(/* webpackChunkName: "about" */ '../views/Add_customer.vue')
+  } ,
+  {
+    path: '/add_products',
+    name: 'add_products',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Add_product.vue')
+  } ,
+  
+  {
+    path: '/product',
+    name: 'product',
+    component: () => import(/* webpackChunkName: "about" */ '../views/Product.vue')
   }
+  
+  
 
 ]
 

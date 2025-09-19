@@ -1,7 +1,7 @@
 <template>
- <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+<nav class="navbar navbar-expand-lg bg-body-tertiary"data-bs-theme="dark">
   <div class="container-fluid">
-    <a class="navbar-brand" href="#">BBK</a>
+    <a class="navbar-brand" href="#">Navbar</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -14,17 +14,20 @@
           <a class="nav-link" href="/showproduct">Show Product</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/Customers">Customers</a>
+          <a class="nav-link" href="/product">Product</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/customer">Customers</a>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             Login
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Login</a></li>
-            <li><a class="dropdown-item" href="#">Log Out</a></li>
+            <li><a class="dropdown-item" href="#">login</a></li>
+            <li><a class="dropdown-item" href="#">logout</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#">Register</a></li>
+            <li><a class="dropdown-item" href="/add_customer">register</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -38,5 +41,8 @@
     </div>
   </div>
 </nav>
+
   <router-view/>
 </template>
+
+
