@@ -1,32 +1,32 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-3">รายชื่อลูกค้า</h2>
+    <h2 class="mb-3">รายชื่อนักเรียน</h2>
     
     <div class="mb-3">
-      <a class="btn btn-primary" href="/add_customers" role="button">Add+</a>
+      <a class="btn btn-primary" href="/add_student" role="button">เพิ่มนักเรียน</a>
     </div>
 
-    <!-- ตารางแสดงข้อมูลลูกค้า -->
+    <!-- ตารางแสดงข้อมูลนักเรียน -->
   <table class="table table-bordered table-striped">
   <thead class="table-primary">
     <tr>
       <th>ID</th>
       <th>ชื่อ</th>
       <th>นามสกุล</th>
-      <th>เบอร์โทร</th>
-      <th>ชื่อผู้ใช้</th>
+      <th>อีเมลล์</th>
+      <th>โทรศัพท์</th>
       <th>ลบ</th>
     </tr>
   </thead>
   <tbody>
-    <tr v-for="customer in customers" :key="customer.customer_id">
-      <td>{{ customer.customer_id }}</td>
-      <td>{{ customer.firstName }}</td>
-      <td>{{ customer.lastName }}</td>
-      <td>{{ customer.phone }}</td>
-      <td>{{ customer.username }}</td>
+    <tr v-for="student in students" :key="student.student_id">
+      <td>{{ student.student_id }}</td>
+      <td>{{ student.first_name }}</td>
+      <td>{{ student.last_name }}</td>
+      <td>{{ student.email }}</td>
+      <td>{{ student.phone }}</td>
       <td>  
-        <button class="btn btn-danger btn-sm" @click="deleteCustomer(customer.customer_id)">ลบ</button>
+        <button class="btn btn-danger btn-sm" @click="deleteStudent(student.student_id)">ลบ</button>
       </td>
     </tr>
   </tbody>
@@ -47,16 +47,16 @@
 import { ref, onMounted } from "vue";
 
 export default {
-  name: "CustomerList",
+  name: "StudentList",
   setup() {
-    const customers = ref([]);
+    const students = ref([]);
     const loading = ref(true);
     const error = ref(null);
 
-    // ฟังก์ชันดึงข้อมูลจาก API ด้วย GET
-    const fetchCustomers = async () => {
+    // ฟังก์ชันดึงข้อมูลนักเรียนจาก API ด้วย GET
+    const fetchStudents = async () => {
       try {
-        const response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
+        const response = await fetch("http://localhost:8081/Project/vue_php_api/student_api.php", {
           method: "GET",
           headers: {
             "Content-Type": "application/json"
@@ -69,7 +69,7 @@ export default {
 
         const result = await response.json();
         if (result.success) {
-          customers.value = result.data;
+          students.value = result.data;
         } else {
           error.value = result.message;
         }
@@ -83,18 +83,18 @@ export default {
     };
 
     onMounted(() => {
-      fetchCustomers();
+      fetchStudents();
     });
 
-    // ฟังก์ชั่นการลบข้อมูล - แก้ไขแล้ว
-    const deleteCustomer = async (id) => {
-      if (!confirm("คุณต้องการลบข้อมูลนี้ใช่หรือไม่?")) return;
+    // ฟังก์ชั่นการลบข้อมูลนักเรียน
+    const deleteStudent = async (id) => {
+      if (!confirm("คุณต้องการลบข้อมูลนักเรียนนี้ใช่หรือไม่?")) return;
 
       try {
-        console.log("Attempting to delete customer ID:", id);
+        console.log("Attempting to delete student ID:", id);
 
         // วิธีที่ 1: ใช้ DELETE method (ถ้า API รองรับ)
-        let response = await fetch(`http://localhost:8081/Project/vue_php_api/customers_api.php?id=${id}`, {
+        let response = await fetch(`http://localhost:8081/Project/vue_php_api/student_api.php?id=${id}`, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json"
@@ -104,14 +104,14 @@ export default {
         // ถ้า DELETE ไม่ทำงาน ลองใช้ POST แทน
         if (!response.ok && response.status === 405) {
           console.log("DELETE method not allowed, trying POST...");
-          response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
+          response = await fetch("http://localhost:8081/Project/vue_php_api/student_api.php", {
             method: "POST",
             headers: {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({ 
               action: "delete",
-              customer_id: id 
+              student_id: id 
             })
           });
         }
@@ -119,7 +119,7 @@ export default {
         // ถ้า POST ก็ไม่ทำงาน ลองใช้ GET แทน
         if (!response.ok && response.status === 405) {
           console.log("POST method not working, trying GET with query params...");
-          response = await fetch(`http://localhost:8081/Project/vue_php_api/customers_api.php?action=delete&id=${id}`, {
+          response = await fetch(`http://localhost:8081/Project/vue_php_api/student_api.php?action=delete&id=${id}`, {
             method: "GET",
             headers: {
               "Content-Type": "application/json"
@@ -135,9 +135,9 @@ export default {
         console.log("Delete response:", result);
 
         if (result.success) {
-          // ลบออกจาก customers ทันที
-          customers.value = customers.value.filter(c => c.customer_id !== id);
-          alert(result.message || "ลบข้อมูลสำเร็จ");
+          // ลบออกจาก students ทันที
+          students.value = students.value.filter(s => s.student_id !== id);
+          alert(result.message || "ลบข้อมูลนักเรียนสำเร็จ");
         } else {
           alert(result.message || "ไม่สามารถลบข้อมูลได้");
         }
@@ -157,9 +157,9 @@ export default {
     };
 
     return {
-      customers,
+      students,
       loading,
-      deleteCustomer,
+      deleteStudent,
       error
     };
   }

@@ -25,13 +25,24 @@ const routes = [
   {
     path: '/Customers',
     name: 'Customers',
-    component: () => import(/* webpackChunkName: "about" */ '../views/Customers.vue')
+    component: () => import( '../views/Customers.vue')
+  }
+   ,
+   {
+    path: '/Student',
+    name: 'Student',
+    component: () => import( '../views/student.vue')
   }
    ,
   {
     path: '/add_customers',
     name: 'add_customers',
     component: () => import(/* webpackChunkName: "about" */ '../views/Add_customer.vue')
+  } ,
+  {
+    path: '/add_student',
+    name: 'add_student',
+    component: () => import(/* webpackChunkName: "about" */ '../views/add_student.vue')
   } ,
   {
     path: '/add_products',

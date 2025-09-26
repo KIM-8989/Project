@@ -9,7 +9,7 @@
         <input v-model="customer.lastName" class="form-control" placeholder="นามสกุล" required />
       </div>
       <div class="mb-2">
-        <input v-model="customer.phone" class="form-control" placeholder="เบอร์โทร" required />
+        <input  v-model="customer.phone" class="form-control" placeholder="เบอร์โทร" required />
       </div>
       <div class="mb-2">
         <input v-model="customer.username" class="form-control" placeholder="ชื่อผู้ใช้" required />

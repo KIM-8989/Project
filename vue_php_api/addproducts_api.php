@@ -10,9 +10,8 @@ try {
         $price        = $_POST["price"];
         $stock        = $_POST["stock"];
 
-        // ตรวจสอบว่ามีไฟล์ส่งมาหรือไม่
         if (isset($_FILES["image"]) && $_FILES["image"]["error"] === UPLOAD_ERR_OK) {
-            $upload_dir = "./uploads/"; // โฟลเดอร์เก็บรูป
+            $upload_dir = "./uploads/"; 
             if (!file_exists($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
@@ -21,7 +20,6 @@ try {
             $target_file = $upload_dir . $filename;
 
             if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                // บันทึกข่้อมูลลงฐานข้อมูล
                 $stmt = $conn->prepare("INSERT INTO Products (product_name, description, price, stock, image) VALUES (?, ?, ?, ?, ?)");
                 $stmt->execute([$product_name, $description, $price, $stock, $filename]);
 
