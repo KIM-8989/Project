@@ -51,7 +51,6 @@
       </div>
     </form>
 
-    <!-- Alert Message -->
     <div v-if="message" class="alert" :class="messageClass" role="alert">
       <i :class="messageIcon" class="me-2"></i>
       {{ message }}
@@ -78,7 +77,6 @@ export default {
     const isLoading = ref(false);
 
     const addStudent = async () => {
-      // ตรวจสอบข้อมูลก่อนส่ง
       if (!validateForm()) return;
 
       isLoading.value = true;
@@ -103,7 +101,6 @@ export default {
           showMessage(data.message, "success");
           resetForm();
           
-          // ลบ message หลัง 5 วินาที
           setTimeout(() => {
             clearMessage();
           }, 5000);

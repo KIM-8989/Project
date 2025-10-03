@@ -1,42 +1,35 @@
 <template>
   <div class="container mt-4">
     <h2 class="mb-3">รายชื่อลูกค้า</h2>
-    
-    <div class="mb-3">
-      <a class="btn btn-primary" href="/add_customers" role="button">Add+</a>
-    </div>
+    <table class="table table-bordered table-striped">
+      <thead class="table-primary">
+        <tr>
+          <th>ID</th>
+          <th>ชื่อ</th>
+          <th>นามสกุล</th>
+          <th>เบอร์โทร</th>
+          <th>ชื่อผู้ใช้</th>
+          <th>ลบ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="customer in customers" :key="customer.customer_id">
+          <td>{{ customer.customer_id }}</td>
+          <td>{{ customer.firstName }}</td>
+          <td>{{ customer.lastName }}</td>
+          <td>{{ customer.phone }}</td>
+          <td>{{ customer.username }}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" @click="deleteCustomer(customer.customer_id)">ลบ</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <!-- ตารางแสดงข้อมูลลูกค้า -->
-  <table class="table table-bordered table-striped">
-  <thead class="table-primary">
-    <tr>
-      <th>ID</th>
-      <th>ชื่อ</th>
-      <th>นามสกุล</th>
-      <th>เบอร์โทร</th>
-      <th>ชื่อผู้ใช้</th>
-      <th>ลบ</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="customer in customers" :key="customer.customer_id">
-      <td>{{ customer.customer_id }}</td>
-      <td>{{ customer.firstName }}</td>
-      <td>{{ customer.lastName }}</td>
-      <td>{{ customer.phone }}</td>
-      <td>{{ customer.username }}</td>
-      <td>  
-        <button class="btn btn-danger btn-sm" @click="deleteCustomer(customer.customer_id)">ลบ</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-    <!-- Loading -->
     <div v-if="loading" class="text-center">
       <p>กำลังโหลดข้อมูล...</p>
     </div>
 
-    <!-- Error -->
     <div v-if="error" class="alert alert-danger">
       {{ error }}
     </div>
@@ -53,7 +46,6 @@ export default {
     const loading = ref(true);
     const error = ref(null);
 
-    // ฟังก์ชันดึงข้อมูลจาก API ด้วย GET
     const fetchCustomers = async () => {
       try {
         const response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
@@ -82,85 +74,37 @@ export default {
       }
     };
 
-    onMounted(() => {
-      fetchCustomers();
-    });
-
-    // ฟังก์ชั่นการลบข้อมูล - แก้ไขแล้ว
     const deleteCustomer = async (id) => {
-      if (!confirm("คุณต้องการลบข้อมูลนี้ใช่หรือไม่?")) return;
+      if (!confirm("คุณแน่ใจหรือไม่ที่จะลบลูกค้านี้?")) return;
+
+      const formData = new FormData();
+      formData.append("action", "delete");
+      formData.append("customer_id", id);
 
       try {
-        console.log("Attempting to delete customer ID:", id);
-
-        // วิธีที่ 1: ใช้ DELETE method (ถ้า API รองรับ)
-        let response = await fetch(`http://localhost:8081/Project/vue_php_api/customers_api.php?id=${id}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json"
-          }
+        const res = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
+          method: "POST",
+          body: formData
         });
-
-        // ถ้า DELETE ไม่ทำงาน ลองใช้ POST แทน
-        if (!response.ok && response.status === 405) {
-          console.log("DELETE method not allowed, trying POST...");
-          response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ 
-              action: "delete",
-              customer_id: id 
-            })
-          });
-        }
-
-        // ถ้า POST ก็ไม่ทำงาน ลองใช้ GET แทน
-        if (!response.ok && response.status === 405) {
-          console.log("POST method not working, trying GET with query params...");
-          response = await fetch(`http://localhost:8081/Project/vue_php_api/customers_api.php?action=delete&id=${id}`, {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json"
-            }
-          });
-        }
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log("Delete response:", result);
-
+        const result = await res.json();
         if (result.success) {
-          // ลบออกจาก customers ทันที
-          customers.value = customers.value.filter(c => c.customer_id !== id);
           alert(result.message || "ลบข้อมูลสำเร็จ");
+          customers.value = customers.value.filter(c => c.customer_id !== id);
         } else {
           alert(result.message || "ไม่สามารถลบข้อมูลได้");
         }
-
       } catch (err) {
-        console.error("Delete error:", err);
         alert("เกิดข้อผิดพลาด: " + err.message);
-        
-        // แสดงรายละเอียดข้อผิดพลาดเพิ่มเติม
-        if (err.name === 'TypeError' && err.message.includes('fetch')) {
-          alert("ไม่สามารถเชื่อมต่อกับ server ได้ กรุณาตรวจสอบ:\n" +
-                "1. Server PHP ทำงานอยู่หรือไม่\n" +
-                "2. URL ถูกต้องหรือไม่\n" +
-                "3. CORS settings");
-        }
       }
     };
+
+    onMounted(fetchCustomers);
 
     return {
       customers,
       loading,
-      deleteCustomer,
-      error
+      error,
+      deleteCustomer
     };
   }
 };

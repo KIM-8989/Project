@@ -1,85 +1,77 @@
 <?php
-// ✅ CORS headers
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-header('Content-Type: application/json; charset=UTF-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Content-Type: application/json; charset=UTF-8");
 
-// ✅ Handle preflight request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// ✅ ป้องกัน error output
-error_reporting(0);
-ob_start();
+include_once 'database.php';
 
-$response = ["success" => false, "message" => ""];
-
-try {
-    // ✅ เชื่อมต่อฐานข้อมูล (ใช้ database.php)
-    include 'database.php';
-    
-    if ($_SERVER["REQUEST_METHOD"] === "POST") {
-        // ✅ ตรวจสอบข้อมูลที่จำเป็น
-        if (empty($_POST["product_name"]) || empty($_POST["description"]) || 
-            empty($_POST["price"]) || empty($_POST["stock"])) {
-            $response["message"] = "กรุณากรอกข้อมูลให้ครบถ้วน";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $product_name = $_POST['product_name'] ?? '';
+        $description = $_POST['description'] ?? '';
+        $price = $_POST['price'] ?? 0;
+        $stock = $_POST['stock'] ?? 0;
+        
+        // ตรวจสอบข้อมูล
+        if (empty($product_name)) {
+            echo json_encode(['success' => false, 'message' => 'กรุณากรอกชื่อสินค้า']);
+            exit();
         }
-        else if (!isset($_FILES["image"]) || $_FILES["image"]["error"] !== UPLOAD_ERR_OK) {
-            $response["message"] = "กรุณาเลือกรูปภาพ";
-        }
-        else {
-            $product_name = trim($_POST["product_name"]);
-            $description  = trim($_POST["description"]);
-            $price        = floatval($_POST["price"]);
-            $stock        = intval($_POST["stock"]);
-
-            // ✅ จัดการอัพโหลดรูปภาพ
-            $upload_dir = "./uploads/";
+        
+        // จัดการรูปภาพ
+        $image = '';
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
+            $target_dir = "uploads/";
             
-            // สร้างโฟลเดอร์ถ้าไม่มี
-            if (!file_exists($upload_dir)) {
-                mkdir($upload_dir, 0777, true);
+            // สร้างโฟลเดอร์ถ้ายังไม่มี
+            if (!file_exists($target_dir)) {
+                mkdir($target_dir, 0777, true);
             }
-
+            
+            // สร้างชื่อไฟล์ใหม่เพื่อป้องกันชื่อซ้ำ
+            $file_extension = pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION);
+            $image = uniqid() . '_' . time() . '.' . $file_extension;
+            $target_file = $target_dir . $image;
+            
             // ตรวจสอบประเภทไฟล์
             $allowed_types = ['jpg', 'jpeg', 'png', 'gif'];
-            $file_extension = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+            if (!in_array(strtolower($file_extension), $allowed_types)) {
+                echo json_encode(['success' => false, 'message' => 'อนุญาตเฉพาะไฟล์ภาพ (jpg, jpeg, png, gif)']);
+                exit();
+            }
             
-            if (!in_array($file_extension, $allowed_types)) {
-                $response["message"] = "ประเภทไฟล์ไม่ถูกต้อง (อนุญาตเฉพาะ jpg, png, gif)";
+            // อัปโหลดไฟล์
+            if (!move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
+                echo json_encode(['success' => false, 'message' => 'ไม่สามารถอัปโหลดรูปภาพได้']);
+                exit();
             }
-            else {
-                $filename = time() . "_" . uniqid() . "." . $file_extension;
-                $target_file = $upload_dir . $filename;
-
-                if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                    // ✅ บันทึกข้อมูลลงฐานข้อมูล
-                    $stmt = $conn->prepare("INSERT INTO Products (product_name, description, price, stock, image) VALUES (?, ?, ?, ?, ?)");
-                    
-                    if ($stmt->execute([$product_name, $description, $price, $stock, $filename])) {
-                        $response["success"] = true;
-                        $response["message"] = "บันทึกสินค้าเรียบร้อยแล้ว";
-                    } else {
-                        $response["message"] = "เกิดข้อผิดพลาดในการบันทึกข้อมูล";
-                    }
-                } else {
-                    $response["message"] = "อัปโหลดไฟล์ไม่สำเร็จ";
-                }
-            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'กรุณาเลือกรูปภาพ']);
+            exit();
         }
-    } else {
-        $response["message"] = "Method ไม่ถูกต้อง - ต้องใช้ POST";
+        
+        // เพิ่มสินค้าใหม่
+        $sql = "INSERT INTO products (product_name, description, price, stock, image) VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$product_name, $description, $price, $stock, $image]);
+        
+        // ⭐ เรียง ID ใหม่ทุกครั้งหลังเพิ่มสินค้า
+        $conn->exec("SET @count = 0");
+        $conn->exec("UPDATE products SET product_id = @count:= @count + 1 ORDER BY product_id");
+        $conn->exec("ALTER TABLE products AUTO_INCREMENT = 1");
+        
+        echo json_encode(['success' => true, 'message' => 'เพิ่มสินค้าสำเร็จ']);
+        
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
     }
-
-} catch (Exception $e) {
-    $response["message"] = "เกิดข้อผิดพลาด: " . $e->getMessage();
+} else {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 }
-
-// ✅ เคลียร์ output buffer และส่ง JSON
-ob_clean();
-echo json_encode($response, JSON_UNESCAPED_UNICODE);
-exit();
 ?>
