@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 26, 2025 at 07:55 PM
+-- Generation Time: Oct 03, 2025 at 08:19 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.1.12
 
@@ -41,8 +41,9 @@ CREATE TABLE `customers` (
 --
 
 INSERT INTO `customers` (`customer_id`, `firstName`, `lastName`, `phone`, `username`, `password`) VALUES
-(3, 'John', 'Doe', '0991122334', 'johnd', 'securepwd'),
-(4, 'Alongkon', 'Lainok', '1234567890', 'Abudabi', '$2y$10$2WCbfOuyZnXMD');
+(1, 'John', 'Doe', '0991122334', 'johnd', 'securepwd'),
+(2, 'Alongkon', 'Lainok', '1234567890', 'Abudabi', '$2y$10$2WCbfOuyZnXMD'),
+(3, 'New', 'Huakuy', '0817466163', 'Abudabo', '$2y$10$Za3XexX.J1u7P');
 
 -- --------------------------------------------------------
 
@@ -103,15 +104,25 @@ CREATE TABLE `products` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `products`
+-- Table structure for table `provinces`
 --
 
-INSERT INTO `products` (`product_id`, `product_name`, `description`, `price`, `image`, `stock`, `created_at`) VALUES
-(1, 'เสื้อยืดคอกลม', 'เสื้อยืดผ้าฝ้าย 100% สวมใส่สบาย', '199.00', 'tshirt.jpg', 50, '2025-09-19 16:25:10'),
-(2, 'กางเกงยีนส์', 'กางเกงยีนส์ทรงกระบอก สีฟ้าอ่อน', '799.00', 'jeans.jpg', 30, '2025-09-19 16:25:10'),
-(3, 'รองเท้าผ้าใบ', 'รองเท้าผ้าใบสีขาว ใส่ได้ทุกโอกาส', '1299.00', 'sneakers.jpg', 20, '2025-09-19 16:25:10'),
-(4, 'Abudab', '111', '10.00', '1758307241_68cda3a9c19ec.jpg', 20, '2025-09-19 18:40:41');
+CREATE TABLE `provinces` (
+  `pv_id` int(3) UNSIGNED ZEROFILL NOT NULL,
+  `pv_name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `provinces`
+--
+
+INSERT INTO `provinces` (`pv_id`, `pv_name`) VALUES
+(001, 'ชลบุรี'),
+(002, 'ระยอง'),
+(003, 'เชียงใหม่');
 
 -- --------------------------------------------------------
 
@@ -135,7 +146,7 @@ CREATE TABLE `students` (
 INSERT INTO `students` (`student_id`, `first_name`, `last_name`, `email`, `phone`, `created_at`) VALUES
 (1, 'Somchai', 'Sukjai', 'somchai@example.com', '0811111111', '2025-09-26 17:24:31'),
 (2, 'Suda', 'Jaidee', 'suda@example.com', '0822222222', '2025-09-26 17:24:31'),
-(4, 'fff', 'fff', 'fff@example.com', '0879512354', '2025-09-26 17:50:37');
+(4, 'อลงกรณ์', 'ลายนอก', 'fff@example.com', '0879512354', '2025-09-26 17:50:37');
 
 --
 -- Indexes for dumped tables
@@ -172,6 +183,12 @@ ALTER TABLE `products`
   ADD PRIMARY KEY (`product_id`);
 
 --
+-- Indexes for table `provinces`
+--
+ALTER TABLE `provinces`
+  ADD PRIMARY KEY (`pv_id`);
+
+--
 -- Indexes for table `students`
 --
 ALTER TABLE `students`
@@ -185,7 +202,7 @@ ALTER TABLE `students`
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `orderdetails`
@@ -209,7 +226,13 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `provinces`
+--
+ALTER TABLE `provinces`
+  MODIFY `pv_id` int(3) UNSIGNED ZEROFILL NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `students`
