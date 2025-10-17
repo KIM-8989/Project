@@ -13,8 +13,14 @@
         <li class="nav-item">
           <router-link class="nav-link" to="/showproduct">Show Product</router-link>
         </li>
-        <li class="nav-item">
-          <router-link class="nav-link" to="/product">Product</router-link>
+         <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Product
+          </a>
+          <ul class="dropdown-menu">
+            <li><router-link class="dropdown-item" to="/product">Product</router-link></li>
+            <li><router-link class="dropdown-item" to="/edit_product">Edit Customer</router-link></li>
+          </ul>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -25,6 +31,15 @@
             <li><router-link class="dropdown-item" to="/edit_customers">Edit Customer</router-link></li>
             <li><hr class="dropdown-divider"></li>
             <li><router-link class="dropdown-item" to="/add_customers">Add Customer</router-link></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Employee
+          </a>
+          <ul class="dropdown-menu">
+            <li><router-link class="dropdown-item" to="/employee">Employee</router-link></li>
+            <li><router-link class="dropdown-item" to="/edit_employee">Edit Employee</router-link></li>
           </ul>
         </li>
         <li class="nav-item dropdown">

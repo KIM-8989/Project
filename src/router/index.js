@@ -64,11 +64,28 @@ const routes = [
     path: '/edit_student',
     name: 'EditStudent',
     component: () => import(/* webpackChunkName: "about" */ '../views/EditStudent.vue')
-  } 
-  
-  
-  
-
+  },
+  {
+  path: '/edit_product',
+  name: 'EditProduct',
+  component: () => import('../views/EditProduct.vue')
+  },
+  {
+  path: '/employee',
+  name: 'Employee',
+  component: () => import('../views/Employee.vue')
+  }
+  ,
+  {
+  path: '/edit_employee',
+  name: 'EditEmployee',
+  component: () => import('../views/Edit_Employee.vue')
+  },
+  {
+  path: '/add_employee',
+  name: 'AddEmployee',
+  component: () => import('../views/Add_Employee.vue')
+  }
 ]
 
 const router = createRouter({

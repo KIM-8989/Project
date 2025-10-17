@@ -1,68 +1,88 @@
 <template>
   <div class="container mt-4">
     <h2 class="mb-3">แก้ไขข้อมูลลูกค้า</h2>
-
-    <div v-if="loading" class="text-center">
-      <p>กำลังโหลดข้อมูล...</p>
+    
+    <div class="mb-3">
+      <button class="btn btn-primary" @click="openAddModal">
+        <i class="bi bi-plus-circle"></i> เพิ่มลูกค้าใหม่
+      </button>
     </div>
 
-    <div v-else-if="error" class="alert alert-danger">
-      {{ error }}
-    </div>
+    <table class="table table-bordered table-striped">
+      <thead class="table-primary">
+        <tr>
+          <th>ID</th>
+          <th>ชื่อ</th>
+          <th>นามสกุล</th>
+          <th>เบอร์โทร</th>
+          <th>ชื่อผู้ใช้</th>
+          <th>แก้ไข/ลบ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="customer in customers" :key="customer.customer_id">
+          <td>{{ customer.customer_id }}</td>
+          <td>{{ customer.firstName }}</td>
+          <td>{{ customer.lastName }}</td>
+          <td>{{ customer.phone }}</td>
+          <td>{{ customer.username }}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" @click="openEditModal(customer)">
+              แก้ไข
+            </button>
+            |
+            <button class="btn btn-danger btn-sm" @click="deleteCustomer(customer.customer_id)">
+              ลบ
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-    <div v-else class="row">
-      <!-- รายชื่อลูกค้า -->
-      <div class="col-md-4">
-        <h5>เลือกลูกค้าที่ต้องการแก้ไข</h5>
-        <div class="list-group">
-          <button
-            v-for="customer in customers"
-            :key="customer.customer_id"
-            class="list-group-item list-group-item-action"
-            :class="{ active: selectedCustomer?.customer_id === customer.customer_id }"
-            @click="selectCustomer(customer)"
-          >
-            {{ customer.customer_id }}. {{ customer.firstName }} {{ customer.lastName }}
-          </button>
-        </div>
-      </div>
+    <div v-if="loading" class="text-center"><p>กำลังโหลดข้อมูล...</p></div>
+    <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-      <!-- ฟอร์มแก้ไข -->
-      <div class="col-md-8">
-        <div v-if="selectedCustomer" class="card">
-          <div class="card-body">
-            <h5 class="card-title">แก้ไขข้อมูล</h5>
-            <form @submit.prevent="updateCustomer">
+    <!-- Modal ใช้ทั้งเพิ่ม/แก้ไข -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ isEditMode ? "แก้ไขข้อมูลลูกค้า" : "เพิ่มลูกค้าใหม่" }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="saveCustomer">
               <div class="mb-3">
                 <label class="form-label">ชื่อ</label>
-                <input v-model="editForm.firstName" type="text" class="form-control" required />
+                <input v-model="editCustomer.firstName" type="text" class="form-control" required>
               </div>
               <div class="mb-3">
                 <label class="form-label">นามสกุล</label>
-                <input v-model="editForm.lastName" type="text" class="form-control" required />
+                <input v-model="editCustomer.lastName" type="text" class="form-control" required>
               </div>
               <div class="mb-3">
                 <label class="form-label">เบอร์โทร</label>
-                <input v-model="editForm.phone" type="text" class="form-control" required />
+                <input v-model="editCustomer.phone" type="text" class="form-control" required>
               </div>
               <div class="mb-3">
                 <label class="form-label">ชื่อผู้ใช้</label>
-                <input v-model="editForm.username" type="text" class="form-control" required />
+                <input v-model="editCustomer.username" type="text" class="form-control" required>
               </div>
               <div class="mb-3">
-                <label class="form-label">รหัสผ่านใหม่ (ถ้าต้องการเปลี่ยน)</label>
-                <input v-model="editForm.password" type="password" class="form-control" placeholder="เว้นว่างไว้ถ้าไม่ต้องการเปลี่ยน" />
+                <label class="form-label">รหัสผ่าน</label>
+                <input v-model="editCustomer.password" type="password" class="form-control"
+                       :required="!isEditMode"
+                       placeholder="กรอกเฉพาะเมื่อเพิ่มใหม่หรือเปลี่ยนรหัสผ่าน">
               </div>
-              <button type="submit" class="btn btn-success">บันทึกการแก้ไข</button>
-              <button type="button" class="btn btn-secondary ms-2" @click="clearSelection">ยกเลิก</button>
+              <button type="submit" class="btn btn-success">
+                {{ isEditMode ? "บันทึกการแก้ไข" : "เพิ่มลูกค้า" }}
+              </button>
             </form>
           </div>
         </div>
-        <div v-else class="alert alert-info">
-          กรุณาเลือกลูกค้าจากรายการด้านซ้าย
-        </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -73,23 +93,18 @@ export default {
   name: "EditCustomer",
   setup() {
     const customers = ref([]);
-    const selectedCustomer = ref(null);
     const loading = ref(true);
     const error = ref(null);
+    const editCustomer = ref({});
+    const isEditMode = ref(false);
+    let editModal = null;
 
-    const editForm = ref({
-      customer_id: null,
-      firstName: "",
-      lastName: "",
-      phone: "",
-      username: "",
-      password: ""
-    });
-
+    // ดึงข้อมูลลูกค้าทั้งหมด
     const fetchCustomers = async () => {
       try {
         const response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php");
         const result = await response.json();
+
         if (result.success) {
           customers.value = result.data;
         } else {
@@ -102,71 +117,115 @@ export default {
       }
     };
 
-    const selectCustomer = (customer) => {
-      selectedCustomer.value = customer;
-      editForm.value = {
-        customer_id: customer.customer_id,
-        firstName: customer.firstName,
-        lastName: customer.lastName,
-        phone: customer.phone,
-        username: customer.username,
-        password: ""
-      };
-    };
+    onMounted(() => {
+      fetchCustomers();
+      const modalEl = document.getElementById("editModal");
+      editModal = new window.bootstrap.Modal(modalEl);
+    });
 
-    const clearSelection = () => {
-      selectedCustomer.value = null;
-      editForm.value = {
-        customer_id: null,
+    // เปิด Modal เพิ่มลูกค้า
+    const openAddModal = () => {
+      isEditMode.value = false;
+      editCustomer.value = {
         firstName: "",
         lastName: "",
         phone: "",
         username: "",
         password: ""
       };
+      editModal.show();
     };
 
-    const updateCustomer = async () => {
+    // เปิด Modal แก้ไขลูกค้า
+    const openEditModal = (customer) => {
+      isEditMode.value = true;
+      editCustomer.value = { ...customer, password: "" };
+      editModal.show();
+    };
+
+    // บันทึกข้อมูล (เพิ่ม/แก้ไข)
+    const saveCustomer = async () => {
+      const url = "http://localhost:8081/Project/vue_php_api/customers_api.php";
+      
+      // สร้าง FormData
       const formData = new FormData();
-      formData.append("action", "update");
-      formData.append("customer_id", editForm.value.customer_id);
-      formData.append("firstName", editForm.value.firstName);
-      formData.append("lastName", editForm.value.lastName);
-      formData.append("phone", editForm.value.phone);
-      formData.append("username", editForm.value.username);
-      if (editForm.value.password) {
-        formData.append("password", editForm.value.password);
+      
+      if (isEditMode.value) {
+        formData.append("action", "update");
+        formData.append("customer_id", editCustomer.value.customer_id);
+      } else {
+        formData.append("action", "add");
+      }
+      
+      formData.append("firstName", editCustomer.value.firstName);
+      formData.append("lastName", editCustomer.value.lastName);
+      formData.append("phone", editCustomer.value.phone);
+      formData.append("username", editCustomer.value.username);
+      
+      // ส่งรหัสผ่านเฉพาะเมื่อมีการกรอก
+      if (editCustomer.value.password) {
+        formData.append("password", editCustomer.value.password);
       }
 
       try {
-        const res = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
+        const response = await fetch(url, {
           method: "POST",
           body: formData
         });
-        const result = await res.json();
+
+        const result = await response.json();
+
         if (result.success) {
-          alert(result.message || "แก้ไขข้อมูลสำเร็จ");
-          await fetchCustomers();
-          clearSelection();
+          alert(result.message);
+          fetchCustomers();
+          editModal.hide();
         } else {
-          alert(result.message || "ไม่สามารถแก้ไขข้อมูลได้");
+          alert(result.message);
         }
       } catch (err) {
+        console.error("Error:", err);
         alert("เกิดข้อผิดพลาด: " + err.message);
       }
     };
 
-    onMounted(fetchCustomers);
+    // ลบลูกค้า
+    const deleteCustomer = async (id) => {
+      if (!confirm("คุณต้องการลบข้อมูลนี้ใช่หรือไม่?")) return;
+      
+      const formData = new FormData();
+      formData.append("action", "delete");
+      formData.append("customer_id", id);
+      
+      try {
+        const response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
+          method: "POST",
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(result.message);
+          fetchCustomers();
+        } else {  
+          alert(result.message);
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        alert("เกิดข้อผิดพลาด: " + err.message);
+      }
+    };
 
     return {
       customers,
-      selectedCustomer,
       loading,
       error,
-      editForm,
-      selectCustomer,
-      clearSelection,
-      updateCustomer
+      editCustomer,
+      isEditMode,
+      openAddModal,
+      openEditModal,
+      saveCustomer,
+      deleteCustomer
     };
   }
 };
