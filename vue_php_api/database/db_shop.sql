@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 03, 2025 at 08:19 PM
+-- Generation Time: Oct 31, 2025 at 06:08 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.1.12
 
@@ -20,6 +20,33 @@ SET time_zone = "+00:00";
 --
 -- Database: `db_shop`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admins`
+--
+
+CREATE TABLE `admins` (
+  `admin_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `full_name` varchar(100) NOT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `phone` varchar(15) DEFAULT NULL,
+  `role` varchar(20) DEFAULT 'admin',
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admins`
+--
+
+INSERT INTO `admins` (`admin_id`, `username`, `password`, `full_name`, `email`, `phone`, `role`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ผู้ดูแลระบบหลัก', 'admin@shop.com', '0812345678', 'superadmin', 'active', '2025-10-31 16:51:12', '2025-10-31 16:51:12'),
+(2, 'staff', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'พนักงานทั่วไป', 'staff@shop.com', '0887654321', 'admin', 'active', '2025-10-31 16:51:12', '2025-10-31 16:51:12');
 
 -- --------------------------------------------------------
 
@@ -44,6 +71,30 @@ INSERT INTO `customers` (`customer_id`, `firstName`, `lastName`, `phone`, `usern
 (1, 'John', 'Doe', '0991122334', 'johnd', 'securepwd'),
 (2, 'Alongkon', 'Lainok', '1234567890', 'Abudabi', '$2y$10$2WCbfOuyZnXMD'),
 (3, 'New', 'Huakuy', '0817466163', 'Abudabo', '$2y$10$Za3XexX.J1u7P');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `employees`
+--
+
+CREATE TABLE `employees` (
+  `employee_id` int(11) NOT NULL,
+  `employee_name` varchar(100) NOT NULL,
+  `department` varchar(50) NOT NULL,
+  `position` varchar(50) NOT NULL,
+  `salary` decimal(10,2) NOT NULL,
+  `image` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `employees`
+--
+
+INSERT INTO `employees` (`employee_id`, `employee_name`, `department`, `position`, `salary`, `image`, `created_at`, `updated_at`) VALUES
+(1, 'NuaHuaKew', 'Cristoris', 'Buttom', '20000.00', '68fba998d32be_1761323416.jpg', '2025-10-24 16:30:16', '2025-10-24 16:30:46');
 
 -- --------------------------------------------------------
 
@@ -104,6 +155,13 @@ CREATE TABLE `products` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`product_id`, `product_name`, `description`, `price`, `image`, `stock`, `created_at`) VALUES
+(1, 'Glock', 'Glock 21 Gen 4', '30000.00', '6904e47c1b8ff_1761928316.PNG', 1, '2025-10-24 16:22:08');
+
 -- --------------------------------------------------------
 
 --
@@ -153,10 +211,23 @@ INSERT INTO `students` (`student_id`, `first_name`, `last_name`, `email`, `phone
 --
 
 --
+-- Indexes for table `admins`
+--
+ALTER TABLE `admins`
+  ADD PRIMARY KEY (`admin_id`),
+  ADD UNIQUE KEY `username` (`username`);
+
+--
 -- Indexes for table `customers`
 --
 ALTER TABLE `customers`
   ADD PRIMARY KEY (`customer_id`);
+
+--
+-- Indexes for table `employees`
+--
+ALTER TABLE `employees`
+  ADD PRIMARY KEY (`employee_id`);
 
 --
 -- Indexes for table `orderdetails`
@@ -199,10 +270,22 @@ ALTER TABLE `students`
 --
 
 --
+-- AUTO_INCREMENT for table `admins`
+--
+ALTER TABLE `admins`
+  MODIFY `admin_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
   MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `employees`
+--
+ALTER TABLE `employees`
+  MODIFY `employee_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `orderdetails`
@@ -226,7 +309,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `provinces`
