@@ -8,6 +8,12 @@ const routes = [
     component: HomeView
   },
   {
+  path: "/login",
+  name: "login",
+  component: () => import("../views/Login.vue"),
+  meta: { hideNavbar: true } // เพิ่มบรรทัดนี้
+},
+  {
     path: '/about',
     name: 'about',
     // route level code-splitting
@@ -68,7 +74,8 @@ const routes = [
   {
   path: '/edit_product',
   name: 'EditProduct',
-  component: () => import('../views/EditProduct.vue')
+  component: () => import('../views/EditProduct.vue'),
+  meta: { requiresAuth: true },
   },
   {
   path: '/employee',
@@ -92,5 +99,23 @@ const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes
 })
+router.beforeEach((to, from, next) => {
+  const isLoggedIn = localStorage.getItem("adminLogin") === "true";
+
+  // ถ้าหน้านั้นต้องล็อกอินก่อน แต่ยังไม่ได้ล็อกอิน
+  if (to.meta.requiresAuth && !isLoggedIn) {
+    alert("⚠ กรุณาเข้าสู่ระบบก่อนใช้งานหน้านี้");
+    next("/login");
+  }
+  // ถ้าเข้าสู่ระบบแล้วแต่พยายามกลับไปหน้า login อีก → ส่งกลับหน้าแรก
+  else if (to.path === "/login" && isLoggedIn) {
+    next("/");
+  } 
+  // อื่น ๆ ไปต่อได้ตามปกติ
+  else {
+    next();
+  }
+});
+
 
 export default router
