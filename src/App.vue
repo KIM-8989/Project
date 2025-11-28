@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
     <div class="container-fluid">
-      <router-link class="navbar-brand" to="/">Final</router-link>
+      <router-link class="navbar-brand" to="/">Project</router-link>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -11,13 +11,89 @@
           <li class="nav-item">
             <router-link class="nav-link active" aria-current="page" to="/">Home</router-link>
           </li>
+
+          <!-- แสดงเฉพาะเมื่อ Login แล้ว -->
+          <template v-if="isLoggedIn">
             
             <!-- เมนูสำหรับ Admin - แสดงทุกอย่างเหมือนเดิม -->
+            <template v-if="userRole === 'admin'">
+              <li class="nav-item">
+                <router-link class="nav-link" to="/showproduct">Show Product</router-link>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Product
+                </a>
+                <ul class="dropdown-menu">
+                  <li><router-link class="dropdown-item" to="/product">Product</router-link></li>
+                  <li><router-link class="dropdown-item" to="/edit_product">Edit Customer</router-link></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Customers
+                </a>
+                <ul class="dropdown-menu">
+                  <li><router-link class="dropdown-item" to="/Customers">Customer</router-link></li>
+                  <li><router-link class="dropdown-item" to="/edit_customers">Edit Customer</router-link></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><router-link class="dropdown-item" to="/add_customers">Add Customer</router-link></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Employee
+                </a>
+                <ul class="dropdown-menu">
+                  <li><router-link class="dropdown-item" to="/employee">Employee</router-link></li>
+                  <li><router-link class="dropdown-item" to="/edit_employee">Edit Employee</router-link></li>
+                </ul>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Student
+                </a>
+                <ul class="dropdown-menu">
+                  <li><router-link class="dropdown-item" to="/Student">Student</router-link></li>
+                  <li><router-link class="dropdown-item" to="/edit_student">Edit Student</router-link></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><router-link class="dropdown-item" to="/add_student">Add Student</router-link></li>
+                </ul>
+              </li>
+            </template>
 
-          <li class="nav-item">
-            <router-link class="nav-link" to="/employee">Employee</router-link>
+            <!-- เมนูสำหรับ Customer - แสดงเฉพาะ Show Product และ Product -->
+            <template v-if="userRole === 'customer'">
+              <li class="nav-item">
+                <router-link class="nav-link" to="/showproduct">Show Product</router-link>
+              </li>
+              <li class="nav-item">
+                <router-link class="nav-link" to="/product">Product</router-link>
+              </li>
+            </template>
+          </template>
+
+          <!-- เมนู Login/Logout -->
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ isLoggedIn ? 'Account' : 'Login' }}
+            </a>
+            <ul class="dropdown-menu">
+              <template v-if="!isLoggedIn">
+                <li><router-link class="dropdown-item" to="/login">Login</router-link></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><router-link class="dropdown-item" to="/add_customers">Register</router-link></li>
+              </template>
+              <template v-else>
+                <li><a class="dropdown-item" href="#" @click.prevent="handleLogout">Logout</a></li>
+              </template>
+            </ul>
           </li>
-          <router-link class="nav-link" to="/show-employee">Employee</router-link>
+
+          <!-- About - ทุกคนเห็น -->
+          <li class="nav-item">
+            <router-link class="nav-link" to="/about">About</router-link>
+          </li>
         </ul>
 
         <!-- Search - แสดงเฉพาะเมื่อ Login แล้ว -->

@@ -1,35 +1,37 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-3">รายชื่อลูกค้า</h2>
+    <h2 class="mb-3">รายชื่อนักเรียน</h2>
     <table class="table table-bordered table-striped">
       <thead class="table-primary">
         <tr>
           <th>ID</th>
           <th>ชื่อ</th>
           <th>นามสกุล</th>
-          <th>เบอร์โทร</th>
-          <th>ชื่อผู้ใช้</th>
+          <th>อีเมลล์</th>
+          <th>โทรศัพท์</th>
           <th>ลบ</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="customer in customers" :key="customer.customer_id">
-          <td>{{ customer.customer_id }}</td>
-          <td>{{ customer.firstName }}</td>
-          <td>{{ customer.lastName }}</td>
-          <td>{{ customer.phone }}</td>
-          <td>{{ customer.username }}</td>
-          <td>
-            <button class="btn btn-danger btn-sm" @click="deleteCustomer(customer.customer_id)">ลบ</button>
+        <tr v-for="student in students" :key="student.student_id">
+          <td>{{ student.student_id }}</td>
+          <td>{{ student.first_name }}</td>
+          <td>{{ student.last_name }}</td>
+          <td>{{ student.email }}</td>
+          <td>{{ student.phone }}</td>
+          <td>  
+            <button class="btn btn-danger btn-sm" @click="deleteStudent(student.student_id)">ลบ</button>
           </td>
         </tr>
       </tbody>
     </table>
 
+    <!-- Loading -->
     <div v-if="loading" class="text-center">
       <p>กำลังโหลดข้อมูล...</p>
     </div>
 
+    <!-- Error -->
     <div v-if="error" class="alert alert-danger">
       {{ error }}
     </div>
@@ -40,15 +42,15 @@
 import { ref, onMounted } from "vue";
 
 export default {
-  name: "CustomerList",
+  name: "StudentList",
   setup() {
-    const customers = ref([]);
+    const students = ref([]);
     const loading = ref(true);
     const error = ref(null);
 
-    const fetchCustomers = async () => {
+    const fetchStudents = async () => {
       try {
-        const response = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
+        const response = await fetch("http://localhost:8081/Project/vue_php_api/student_api.php", {
           method: "GET",
           headers: {
             "Content-Type": "application/json"
@@ -61,7 +63,7 @@ export default {
 
         const result = await response.json();
         if (result.success) {
-          customers.value = result.data;
+          students.value = result.data;
         } else {
           error.value = result.message;
         }
@@ -74,22 +76,22 @@ export default {
       }
     };
 
-    const deleteCustomer = async (id) => {
-      if (!confirm("คุณแน่ใจหรือไม่ที่จะลบลูกค้านี้?")) return;
+    const deleteStudent = async (id) => {
+      if (!confirm("คุณต้องการลบข้อมูลนักเรียนนี้ใช่หรือไม่?")) return;
 
       const formData = new FormData();
       formData.append("action", "delete");
-      formData.append("customer_id", id);
+      formData.append("student_id", id);
 
       try {
-        const res = await fetch("http://localhost:8081/Project/vue_php_api/customers_api.php", {
+        const res = await fetch("http://localhost:8081/Project/vue_php_api/student_api.php", {
           method: "POST",
           body: formData
         });
         const result = await res.json();
         if (result.success) {
-          alert(result.message || "ลบข้อมูลสำเร็จ");
-          customers.value = customers.value.filter(c => c.customer_id !== id);
+          alert(result.message || "ลบข้อมูลนักเรียนสำเร็จ");
+          students.value = students.value.filter(s => s.student_id !== id);
         } else {
           alert(result.message || "ไม่สามารถลบข้อมูลได้");
         }
@@ -98,13 +100,15 @@ export default {
       }
     };
 
-    onMounted(fetchCustomers);
+    onMounted(() => {
+      fetchStudents();
+    });
 
     return {
-      customers,
+      students,
       loading,
-      error,
-      deleteCustomer
+      deleteStudent,
+      error
     };
   }
 };

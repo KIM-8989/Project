@@ -13,30 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // เชื่อมต่อฐานข้อมูล
 include_once 'database.php';
 
-// ตรวจสอบการเชื่อมต่อฐานข้อมูล
-if (!$conn) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Database connection failed'
-    ]);
-    exit();
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $first_name = $_POST['first_name'] ?? '';
-        $last_name = $_POST['last_name'] ?? '';
-        $address = $_POST['address'] ?? '';
-        $phone = $_POST['phone'] ?? '';
-        
-        // ตรวจสอบข้อมูลที่จำเป็น
-        if (empty($first_name) || empty($last_name)) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'ชื่อและนามสกุลต้องไม่ว่างเปล่า'
-            ]);
-            exit();
-        }
+        $employee_name = $_POST['employee_name'] ?? '';
+        $department = $_POST['department'] ?? '';
+        $position = $_POST['position'] ?? '';
+        $salary = $_POST['salary'] ?? 0;
         
         // จัดการอัปโหลดรูปภาพ
         $image = '';
@@ -58,10 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         // เพิ่มข้อมูลลงฐานข้อมูล
-        $sql = "INSERT INTO employees (first_name, last_name, address, phone, image) 
+        $sql = "INSERT INTO employees (employee_name, department, position, salary, image) 
                 VALUES (?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$first_name, $last_name, $address, $phone, $image]);
+        $stmt->execute([$employee_name, $department, $position, $salary, $image]);
         
         echo json_encode([
             'success' => true,

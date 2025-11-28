@@ -15,16 +15,16 @@ include_once 'database.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// GET - ดึงข้อมูลพนักงาน
+// GET - ดึงข้อมูลสินค้า
 if ($method === 'GET') {
     try {
-        $stmt = $conn->prepare("SELECT * FROM employees ORDER BY employee_id ASC");
+        $stmt = $conn->prepare("SELECT * FROM products ORDER BY product_id ASC");
         $stmt->execute();
-        $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         echo json_encode([
             'success' => true,
-            'data' => $employees
+            'data' => $products
         ]);
     } catch (PDOException $e) {
         echo json_encode([
@@ -41,11 +41,11 @@ else if ($method === 'POST') {
     // UPDATE
     if ($action === 'update') {
         try {
-            $employee_id = $_POST['employee_id'];
-            $employee_name = $_POST['employee_name'];
-            $department = $_POST['department'];
-            $position = $_POST['position'];
-            $salary = $_POST['salary'];
+            $product_id = $_POST['product_id'];
+            $product_name = $_POST['product_name'];
+            $description = $_POST['description'];
+            $price = $_POST['price'];
+            $stock = $_POST['stock'];
             
             // จัดการรูปภาพ
             $image = $_POST['old_image'] ?? '';
@@ -68,16 +68,16 @@ else if ($method === 'POST') {
             }
             
             if ($image) {
-                $sql = "UPDATE employees SET employee_name = ?, department = ?, position = ?, salary = ?, image = ? WHERE employee_id = ?";
+                $sql = "UPDATE products SET product_name = ?, description = ?, price = ?, stock = ?, image = ? WHERE product_id = ?";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$employee_name, $department, $position, $salary, $image, $employee_id]);
+                $stmt->execute([$product_name, $description, $price, $stock, $image, $product_id]);
             } else {
-                $sql = "UPDATE employees SET employee_name = ?, department = ?, position = ?, salary = ? WHERE employee_id = ?";
+                $sql = "UPDATE products SET product_name = ?, description = ?, price = ?, stock = ? WHERE product_id = ?";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$employee_name, $department, $position, $salary, $employee_id]);
+                $stmt->execute([$product_name, $description, $price, $stock, $product_id]);
             }
             
-            echo json_encode(['message' => 'อัปเดตพนักงานสำเร็จ']);
+            echo json_encode(['message' => 'อัปเดตสินค้าสำเร็จ']);
         } catch (PDOException $e) {
             echo json_encode(['error' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
         }
@@ -86,11 +86,11 @@ else if ($method === 'POST') {
     // DELETE
     else if ($action === 'delete') {
         try {
-            $employee_id = $_POST['employee_id'];
+            $product_id = $_POST['product_id'];
             
             // ลบรูปภาพ
-            $stmt = $conn->prepare("SELECT image FROM employees WHERE employee_id = ?");
-            $stmt->execute([$employee_id]);
+            $stmt = $conn->prepare("SELECT image FROM products WHERE product_id = ?");
+            $stmt->execute([$product_id]);
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($row) {
@@ -101,15 +101,15 @@ else if ($method === 'POST') {
             }
             
             // ลบข้อมูล
-            $stmt = $conn->prepare("DELETE FROM employees WHERE employee_id = ?");
-            $stmt->execute([$employee_id]);
+            $stmt = $conn->prepare("DELETE FROM products WHERE product_id = ?");
+            $stmt->execute([$product_id]);
             
             // ⭐ เรียง ID ใหม่หลังลบ
             $conn->exec("SET @count = 0");
-            $conn->exec("UPDATE employees SET employee_id = @count:= @count + 1 ORDER BY employee_id");
-            $conn->exec("ALTER TABLE employees AUTO_INCREMENT = 1");
+            $conn->exec("UPDATE products SET product_id = @count:= @count + 1 ORDER BY product_id");
+            $conn->exec("ALTER TABLE products AUTO_INCREMENT = 1");
             
-            echo json_encode(['message' => 'ลบพนักงานสำเร็จ']);
+            echo json_encode(['message' => 'ลบสินค้าสำเร็จ']);
         } catch (PDOException $e) {
             echo json_encode(['error' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
         }

@@ -1,36 +1,36 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-3">แก้ไขพนักงาน</h2>
+    <h2 class="mb-3">รายการสินค้า</h2>
     
     <div class="mb-3">
-      <a class="btn btn-primary" href="/add_employee" role="button">Add+</a>
+      <a class="btn btn-primary" href="/add_products" role="button">Add+</a>
     </div>
 
     <table class="table table-bordered table-striped">
       <thead class="table-primary">
         <tr>
           <th>ID</th>
-          <th>ชื่อพนักงาน</th>
-          <th>แผนก</th>
-          <th>ตำแหน่ง</th>
-          <th>เงินเดือน</th>
+          <th>ชื่อสินค้า</th>
+          <th>รายละเอียด</th>
+          <th>ราคา</th>
+          <th>จำนวน</th>
           <th>รูปภาพ</th>
           <th>การจัดการ</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="employee in employees" :key="employee.employee_id">
-          <td>{{ employee.employee_id }}</td>
-          <td>{{ employee.employee_name }}</td>
-          <td>{{ employee.department }}</td>
-          <td>{{ employee.position }}</td>
-          <td>{{ Number(employee.salary).toLocaleString() }}</td>
+        <tr v-for="product in products" :key="product.product_id">
+          <td>{{ product.product_id }}</td>
+          <td>{{ product.product_name }}</td>
+          <td>{{ product.description }}</td>
+          <td>{{ product.price }}</td>
+          <td>{{ product.stock }}</td>
           <td>
-            <img :src="'http://localhost:8081/Project/vue_php_api/uploads/' + employee.image" width="100" />
+            <img :src="'http://localhost:8081/Project/vue_php_api/uploads/' + product.image" width="100" />
           </td>
           <td>
-            <button class="btn btn-warning btn-sm me-2" @click="openEditModal(employee)">แก้ไข</button>
-            <button class="btn btn-danger btn-sm" @click="deleteEmployee(employee.employee_id)">ลบ</button>
+            <button class="btn btn-warning btn-sm me-2" @click="openEditModal(product)">แก้ไข</button>
+            <button class="btn btn-danger btn-sm" @click="deleteProduct(product.product_id)">ลบ</button>
           </td>
         </tr>
       </tbody>
@@ -39,31 +39,30 @@
     <div v-if="loading" class="text-center"><p>กำลังโหลดข้อมูล...</p></div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
 
-    <!-- Modal แก้ไข -->
     <div class="modal fade" id="editModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">แก้ไขข้อมูลพนักงาน</h5>
+            <h5 class="modal-title">แก้ไขสินค้า</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="updateEmployee">
+            <form @submit.prevent="updateProduct">
               <div class="mb-3">
-                <label class="form-label">ชื่อพนักงาน</label>
-                <input v-model="editForm.employee_name" type="text" class="form-control" required />
+                <label class="form-label">ชื่อสินค้า</label>
+                <input v-model="editForm.product_name" type="text" class="form-control" required />
               </div>
               <div class="mb-3">
-                <label class="form-label">แผนก</label>
-                <input v-model="editForm.department" type="text" class="form-control" required />
+                <label class="form-label">รายละเอียด</label>
+                <textarea v-model="editForm.description" class="form-control"></textarea>
               </div>
               <div class="mb-3">
-                <label class="form-label">ตำแหน่ง</label>
-                <input v-model="editForm.position" type="text" class="form-control" required />
+                <label class="form-label">ราคา</label>
+                <input v-model="editForm.price" type="number" step="0.01" class="form-control" required />
               </div>
               <div class="mb-3">
-                <label class="form-label">เงินเดือน</label>
-                <input v-model="editForm.salary" type="number" step="0.01" class="form-control" required />
+                <label class="form-label">จำนวน</label>
+                <input v-model="editForm.stock" type="number" class="form-control" required />
               </div>
               <div class="mb-3">
                 <label class="form-label">รูปภาพ</label>
@@ -87,28 +86,28 @@ import { ref, onMounted } from "vue";
 import { Modal } from "bootstrap";
 
 export default {
-  name: "EditEmployeeList",
+  name: "ProductList",
   setup() {
-    const employees = ref([]);
+    const products = ref([]);
     const loading = ref(true);
     const error = ref(null);
 
     const editForm = ref({
-      employee_id: null,
-      employee_name: "",
-      department: "",
-      position: "",
-      salary: "",
+      product_id: null,
+      product_name: "",
+      description: "",
+      price: "",
+      stock: "",
       image: ""
     });
     const newImageFile = ref(null);
     let modalInstance = null;
 
-    const fetchEmployees = async () => {
+    const fetchProducts = async () => {
       try {
-        const res = await fetch("http://localhost:8081/Project/vue_php_api/Employee.php");
+        const res = await fetch("http://localhost:8081/Project/vue_php_api/products_api.php");
         const data = await res.json();
-        employees.value = data.success ? data.data : [];
+        products.value = data.success ? data.data : [];
       } catch (err) {
         error.value = err.message;
       } finally {
@@ -116,8 +115,8 @@ export default {
       }
     };
 
-    const openEditModal = (employee) => {
-      editForm.value = { ...employee };
+    const openEditModal = (product) => {
+      editForm.value = { ...product };
       newImageFile.value = null;
       const modalEl = document.getElementById("editModal");
       modalInstance = new Modal(modalEl);
@@ -128,14 +127,14 @@ export default {
       newImageFile.value = event.target.files[0];
     };
 
-    const updateEmployee = async () => {
+    const updateProduct = async () => {
       const formData = new FormData();
       formData.append("action", "update");
-      formData.append("employee_id", editForm.value.employee_id);
-      formData.append("employee_name", editForm.value.employee_name);
-      formData.append("department", editForm.value.department);
-      formData.append("position", editForm.value.position);
-      formData.append("salary", editForm.value.salary);
+      formData.append("product_id", editForm.value.product_id);
+      formData.append("product_name", editForm.value.product_name);
+      formData.append("description", editForm.value.description);
+      formData.append("price", editForm.value.price);
+      formData.append("stock", editForm.value.stock);
       formData.append("old_image", editForm.value.image);
       
       if (newImageFile.value) {
@@ -143,14 +142,14 @@ export default {
       }
 
       try {
-        const res = await fetch("http://localhost:8081/Project/vue_php_api/Employee.php", {
+        const res = await fetch("http://localhost:8081/Project/vue_php_api/products_api.php", {
           method: "POST",
           body: formData
         });
         const result = await res.json();
         if (result.message) {
           alert(result.message);
-          fetchEmployees();
+          fetchProducts();
           modalInstance.hide();
         } else if (result.error) {
           alert(result.error);
@@ -160,22 +159,22 @@ export default {
       }
     };
 
-    const deleteEmployee = async (id) => {
-      if (!confirm("คุณแน่ใจหรือไม่ที่จะลบพนักงานนี้?")) return;
+    const deleteProduct = async (id) => {
+      if (!confirm("คุณแน่ใจหรือไม่ที่จะลบสินค้านี้?")) return;
 
       const formData = new FormData();
       formData.append("action", "delete");
-      formData.append("employee_id", id);
+      formData.append("product_id", id);
 
       try {
-        const res = await fetch("http://localhost:8081/Project/vue_php_api/Employee.php", {
+        const res = await fetch("http://localhost:8081/Project/vue_php_api/products_api.php", {
           method: "POST",
           body: formData
         });
         const result = await res.json();
         if (result.message) {
           alert(result.message);
-          employees.value = employees.value.filter(e => e.employee_id !== id);
+          products.value = products.value.filter(p => p.product_id !== id);
         } else if (result.error) {
           alert(result.error);
         }
@@ -184,17 +183,17 @@ export default {
       }
     };
 
-    onMounted(fetchEmployees);
+    onMounted(fetchProducts);
 
     return {
-      employees,
+      products,
       loading,
       error,
       editForm,
       openEditModal,
       handleFileUpload,
-      updateEmployee,
-      deleteEmployee
+      updateProduct,
+      deleteProduct
     };
   }
 };
