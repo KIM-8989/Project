@@ -1,24 +1,31 @@
 <?php
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json; charset=UTF-8");
 
-// Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
-// เชื่อมต่อฐานข้อมูล
 include_once 'database.php';
+
+if (!$conn) {
+    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+    exit();
+}
+
+// ✅ บังคับให้ใช้ UTF-8
+$conn->exec("SET NAMES utf8mb4");
+$conn->exec("SET CHARACTER SET utf8mb4");
 
 $method = $_SERVER['REQUEST_METHOD'];
 
-// GET - ดึงข้อมูลพนักงาน
+// ========== GET - ดึงข้อมูลพนักงาน (ข้อ 2.1) ==========
 if ($method === 'GET') {
     try {
-        $stmt = $conn->prepare("SELECT * FROM employees ORDER BY employee_id ASC");
+        $stmt = $conn->prepare("SELECT emp_id, first_name, last_name, address, phone, image FROM employees ORDER BY emp_id ASC");
         $stmt->execute();
         $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -29,92 +36,120 @@ if ($method === 'GET') {
     } catch (PDOException $e) {
         echo json_encode([
             'success' => false,
-            'message' => 'Database error: ' . $e->getMessage()
+            'message' => 'Error: ' . $e->getMessage()
         ]);
     }
 }
 
-// POST - สำหรับ update และ delete
+// ========== POST - เพิ่ม/แก้ไข/ลบ พนักงาน ==========
 else if ($method === 'POST') {
     $action = $_POST['action'] ?? '';
     
-    // UPDATE
-    if ($action === 'update') {
+    // ========== ADD - เพิ่มพนักงาน (ข้อ 2.2) ==========
+    if ($action === 'add') {
         try {
-            $employee_id = $_POST['employee_id'];
-            $employee_name = $_POST['employee_name'];
-            $department = $_POST['department'];
-            $position = $_POST['position'];
-            $salary = $_POST['salary'];
-            
-            // จัดการรูปภาพ
-            $image = $_POST['old_image'] ?? '';
-            if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
-                $target_dir = "uploads/";
-                
-                // ลบรูปเก่า (ถ้ามี)
-                if (!empty($_POST['old_image'])) {
-                    $old_image_path = $target_dir . $_POST['old_image'];
-                    if (file_exists($old_image_path)) {
-                        unlink($old_image_path);
-                    }
+            $first_name = $_POST['first_name'] ?? '';
+            $last_name = $_POST['last_name'] ?? '';
+            $address = $_POST['address'] ?? '';
+            $phone = $_POST['phone'] ?? '';
+            $image_name = '';
+
+            // จัดการอัพโหลดรูปภาพ
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                $upload_dir = 'uploads/';
+                if (!file_exists($upload_dir)) {
+                    mkdir($upload_dir, 0777, true);
                 }
                 
-                // อัปโหลดรูปใหม่
-                $file_extension = pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION);
-                $image = uniqid() . '_' . time() . '.' . $file_extension;
-                $target_file = $target_dir . $image;
-                move_uploaded_file($_FILES["image"]["tmp_name"], $target_file);
+                $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $image_name = 'uploads/' . uniqid() . '.' . $file_extension;
+                
+                if (!move_uploaded_file($_FILES['image']['tmp_name'], $image_name)) {
+                    echo json_encode(['success' => false, 'message' => 'ไม่สามารถอัพโหลดรูปภาพได้']);
+                    exit();
+                }
             }
+
+            $stmt = $conn->prepare("INSERT INTO employees (first_name, last_name, address, phone, image) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$first_name, $last_name, $address, $phone, $image_name]);
             
-            if ($image) {
-                $sql = "UPDATE employees SET employee_name = ?, department = ?, position = ?, salary = ?, image = ? WHERE employee_id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->execute([$employee_name, $department, $position, $salary, $image, $employee_id]);
-            } else {
-                $sql = "UPDATE employees SET employee_name = ?, department = ?, position = ?, salary = ? WHERE employee_id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->execute([$employee_name, $department, $position, $salary, $employee_id]);
-            }
+            echo json_encode([
+                'success' => true,
+                'message' => 'เพิ่มพนักงานสำเร็จ',
+                'emp_id' => $conn->lastInsertId()
+            ]);
             
-            echo json_encode(['message' => 'อัปเดตพนักงานสำเร็จ']);
         } catch (PDOException $e) {
-            echo json_encode(['error' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
     }
     
-    // DELETE
+    // ========== UPDATE - แก้ไขพนักงาน (ข้อ 2.3) ==========
+    else if ($action === 'update') {
+        try {
+            $emp_id = $_POST['emp_id'] ?? '';
+            $first_name = $_POST['first_name'] ?? '';
+            $last_name = $_POST['last_name'] ?? '';
+            $address = $_POST['address'] ?? '';
+            $phone = $_POST['phone'] ?? '';
+            $old_image = $_POST['old_image'] ?? '';
+            $image_name = $old_image;
+
+            // จัดการรูปภาพใหม่
+            if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+                // ลบรูปเก่า
+                if ($old_image && file_exists($old_image)) {
+                    unlink($old_image);
+                }
+                
+                $upload_dir = 'uploads/';
+                $file_extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+                $image_name = 'uploads/' . uniqid() . '.' . $file_extension;
+                move_uploaded_file($_FILES['image']['tmp_name'], $image_name);
+            }
+
+            $stmt = $conn->prepare("UPDATE employees SET first_name = ?, last_name = ?, address = ?, phone = ?, image = ? WHERE emp_id = ?");
+            $stmt->execute([$first_name, $last_name, $address, $phone, $image_name, $emp_id]);
+            
+            echo json_encode([
+                'success' => true,
+                'message' => 'แก้ไขข้อมูลสำเร็จ'
+            ]);
+            
+        } catch (PDOException $e) {
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+    
+    // ========== DELETE - ลบพนักงาน (ข้อ 2.4) ==========
     else if ($action === 'delete') {
         try {
-            $employee_id = $_POST['employee_id'];
+            $emp_id = $_POST['emp_id'] ?? '';
             
-            // ลบรูปภาพ
-            $stmt = $conn->prepare("SELECT image FROM employees WHERE employee_id = ?");
-            $stmt->execute([$employee_id]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if ($row) {
-                $image_path = "uploads/" . $row['image'];
-                if (file_exists($image_path)) {
-                    unlink($image_path);
-                }
-            }
+            // ดึงข้อมูลรูปภาพก่อนลบ
+            $stmt = $conn->prepare("SELECT image FROM employees WHERE emp_id = ?");
+            $stmt->execute([$emp_id]);
+            $employee = $stmt->fetch(PDO::FETCH_ASSOC);
             
             // ลบข้อมูล
-            $stmt = $conn->prepare("DELETE FROM employees WHERE employee_id = ?");
-            $stmt->execute([$employee_id]);
+            $stmt = $conn->prepare("DELETE FROM employees WHERE emp_id = ?");
+            $stmt->execute([$emp_id]);
             
-            // ⭐ เรียง ID ใหม่หลังลบ
-            $conn->exec("SET @count = 0");
-            $conn->exec("UPDATE employees SET employee_id = @count:= @count + 1 ORDER BY employee_id");
-            $conn->exec("ALTER TABLE employees AUTO_INCREMENT = 1");
+            // ลบรูปภาพ
+            if ($employee && $employee['image'] && file_exists($employee['image'])) {
+                unlink($employee['image']);
+            }
             
-            echo json_encode(['message' => 'ลบพนักงานสำเร็จ']);
+            echo json_encode([
+                'success' => true,
+                'message' => 'ลบพนักงานสำเร็จ'
+            ]);
+            
         } catch (PDOException $e) {
-            echo json_encode(['error' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
         }
     }
 } else {
-    echo json_encode(["success" => false, "message" => "Invalid request method"]);
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 }
 ?>
